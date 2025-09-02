@@ -1,11 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { LoaderStore } from './core/state/loader.store';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterLink, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterOutlet],
   template: `
+    <!-- Loader global (overlay plein écran) -->
+    <div
+      *ngIf="isLoading()"
+      class="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        class="w-16 h-16 rounded-full border-4 border-white border-t-transparent animate-spin"
+      ></div>
+      <span class="sr-only">Chargement…</span>
+    </div>
+
     <div class="min-h-screen bg-gray-50 text-gray-900">
       <header class="border-b bg-white">
         <nav class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-4">
@@ -50,4 +65,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     </div>
   `,
 })
-export class App {}
+export class App {
+  private loader = inject(LoaderStore);
+  readonly isLoading = this.loader.isLoading;
+}

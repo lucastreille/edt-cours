@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { LoaderStore } from '../state/loader.store';
 
 export interface User {
   id: number;
@@ -12,53 +13,64 @@ export class AuthService {
   private readonly STORAGE_KEY = 'auth_user';
 
   private readonly _user = signal<User | null>(this.loadFromStorage());
+  private readonly loader = inject(LoaderStore);
 
   // public API (signals)
   readonly user = computed(() => this._user());
   readonly isAuthenticated = computed(() => this._user() !== null);
   readonly role = computed(() => this._user()?.role ?? null);
-  readonly token = computed(() => this._user()?.token ?? null); // 👈 ajouté
+  readonly token = computed(() => this._user()?.token ?? null);
 
   async login(email: string, password: string): Promise<User> {
-    // simulate API delay
-    await new Promise((res) => setTimeout(res, 500));
+    this.loader.start();
+    try {
+      // simulate API delay
+      await new Promise((res) => setTimeout(res, 700));
 
-    if (!password || password.length < 3) {
-      throw new Error('Invalid password');
+      if (!password || password.length < 3) {
+        throw new Error('Invalid password');
+      }
+
+      const role: 'admin' | 'etudiant' = email.includes('admin') ? 'admin' : 'etudiant';
+
+      const user: User = {
+        id: Date.now(),
+        email,
+        role,
+        token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
+      };
+
+      this._user.set(user);
+      this.saveToStorage(user);
+      return user;
+    } finally {
+      this.loader.stop();
     }
-
-    const role: 'admin' | 'etudiant' = email.includes('admin') ? 'admin' : 'etudiant';
-
-    const user: User = {
-      id: Date.now(),
-      email,
-      role,
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
-    };
-
-    this._user.set(user);
-    this.saveToStorage(user);
-    return user;
   }
 
   async register(email: string, password: string): Promise<User> {
-    // simulate API delay
-    await new Promise((res) => setTimeout(res, 500));
+    this.loader.start();
+    try {
+      // simulate API delay
+      await new Promise((res) => setTimeout(res, 700));
 
-    if (!password || password.length < 3) {
-      throw new Error('Password too short');
+      if (!password || password.length < 3) {
+        throw new Error('Password too short');
+      }
+
+      const user: User = {
+        id: Date.now(),
+        email,
+        role: 'etudiant',
+        token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
+      };
+
+      this._user.set(user);
+      this.saveToStorage(user);
+      return user;
+    } finally {
+      this.loader.stop();
     }
-
-    const user: User = {
-      id: Date.now(),
-      email,
-      role: 'etudiant',
-      token: 'mock-jwt-token-' + Math.random().toString(36).substring(2),
-    };
-
-    this._user.set(user);
-    this.saveToStorage(user);
-    return user;
   }
 
   logout(): void {
