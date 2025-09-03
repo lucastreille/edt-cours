@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoaderStore } from './core/state/loader.store';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -56,6 +58,14 @@ import { LoaderStore } from './core/state/loader.store';
             class="px-3 py-1 rounded hover:bg-gray-100 focus:outline-none focus:ring"
             >Notes</a
           >
+          <button
+            *ngIf="isAdmin()"
+            (click)="devPing()"
+            class="px-3 py-1 rounded hover:bg-gray-100 focus:outline-none focus:ring"
+            aria-label="Ping API (test interceptor)"
+          >
+            Ping API
+          </button>
         </nav>
       </header>
 
@@ -68,4 +78,17 @@ import { LoaderStore } from './core/state/loader.store';
 export class App {
   private loader = inject(LoaderStore);
   readonly isLoading = this.loader.isLoading;
+
+  private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
+  isAdmin(): boolean {
+    return this.auth.role() === 'admin';
+  }
+
+  devPing(): void {
+    this.http.get<{ ok: boolean; ts: string }>('assets/ping.json').subscribe({
+      next: (res) => console.warn('PING OK', res),
+      error: (err) => console.warn('PING ERR', err),
+    });
+  }
 }
