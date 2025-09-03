@@ -1,11 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { StudentsService } from '../../../features/etudiants/students.service';
 import { Student } from '../../../features/etudiants/student.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <section class="space-y-4">
       <header class="flex items-end gap-3 flex-wrap">
@@ -23,7 +25,14 @@ import { Student } from '../../../features/etudiants/student.model';
           </div>
         </div>
 
-        <div class="text-sm text-gray-600">
+        <a
+          *ngIf="isAdmin()"
+          routerLink="/etudiants/nouveau"
+          class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+          >Ajouter</a
+        >
+
+        <div class="text-sm text-gray-600 ml-auto">
           {{ filteredCount() }} résultat(s) — page {{ page() }} / {{ totalPages() }}
         </div>
       </header>
@@ -62,15 +71,37 @@ import { Student } from '../../../features/etudiants/student.model';
               >
                 Créé le
               </th>
+              <th
+                scope="col"
+                class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+                *ngIf="isAdmin()"
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr *ngFor="let s of pageItems(); trackBy: trackById" class="hover:bg-gray-50">
-              <td class="px-4 py-2">{{ s.firstName }}</td>
-              <td class="px-4 py-2 font-medium">{{ s.lastName }}</td>
+              <td class="px-4 py-2">
+                <a [routerLink]="['/etudiants', s.id]" class="text-indigo-700 hover:underline">{{
+                  s.firstName
+                }}</a>
+              </td>
+              <td class="px-4 py-2 font-medium">
+                <a [routerLink]="['/etudiants', s.id]" class="text-indigo-700 hover:underline">{{
+                  s.lastName
+                }}</a>
+              </td>
               <td class="px-4 py-2">{{ s.email }}</td>
               <td class="px-4 py-2">{{ s.birthDate }}</td>
               <td class="px-4 py-2">{{ s.createdAt | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td class="px-4 py-2 text-right" *ngIf="isAdmin()">
+                <a
+                  [routerLink]="['/etudiants', s.id, 'edition']"
+                  class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+                  >Éditer</a
+                >
+              </td>
             </tr>
           </tbody>
         </table>
@@ -105,14 +136,17 @@ import { Student } from '../../../features/etudiants/student.model';
 })
 export class StudentsListPage {
   private readonly studentsSvc = inject(StudentsService);
+  private readonly auth = inject(AuthService);
+
+  readonly isAdmin = () => this.auth.role() === 'admin';
 
   readonly pageSize = 10;
   readonly page = signal(1);
   readonly query = signal('');
 
-  // charge initiale (délais mock pour montrer le loader)
-
   constructor() {
+    // charge initiale (délais mock)
+
     this.studentsSvc.getAll();
   }
 
@@ -147,7 +181,6 @@ export class StudentsListPage {
 
   onSearch(value: string): void {
     this.query.set(value);
-    // reset page quand on change la recherche
     this.page.set(1);
   }
 
@@ -163,6 +196,5 @@ export class StudentsListPage {
     return s.id;
   }
 
-  // Expose Math pour le template (plutôt que $any)
   readonly Math = Math;
 }
