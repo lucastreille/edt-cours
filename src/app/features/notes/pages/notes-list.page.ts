@@ -1,8 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NotesService } from '../../../features/notes/notes.service';
 import { StudentsService } from '../../../features/etudiants/students.service';
 import { CoursesService } from '../../../features/cours/courses.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface EnrichedNote {
   id: number;
@@ -17,7 +19,7 @@ interface EnrichedNote {
 
 @Component({
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
@@ -25,7 +27,16 @@ interface EnrichedNote {
           <h2 class="text-2xl font-semibold">Notes</h2>
           <p class="text-sm text-gray-600">Filtrez par étudiant, par cours, ou recherchez</p>
         </div>
-        <div class="text-sm text-gray-600">{{ filteredCount() }} note(s)</div>
+
+        <div class="flex items-center gap-2">
+          <a
+            *ngIf="isAdmin()"
+            routerLink="/notes/nouvelle"
+            class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+            >Ajouter</a
+          >
+          <div class="text-sm text-gray-600">{{ filteredCount() }} note(s)</div>
+        </div>
       </header>
 
       <!-- Filtres -->
@@ -102,6 +113,12 @@ interface EnrichedNote {
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                 Note /20
               </th>
+              <th
+                *ngIf="isAdmin()"
+                class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
+              >
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
@@ -110,9 +127,30 @@ interface EnrichedNote {
               <td class="px-4 py-2">{{ n.studentName }}</td>
               <td class="px-4 py-2">{{ n.courseTitle }}</td>
               <td class="px-4 py-2 text-right font-semibold">{{ n.value }}</td>
+              <td *ngIf="isAdmin()" class="px-4 py-2 text-right">
+                <div class="inline-flex items-center gap-2">
+                  <a
+                    [routerLink]="['/notes', n.id, 'edition']"
+                    class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+                    aria-label="Éditer la note"
+                    >Éditer</a
+                  >
+                  <button
+                    type="button"
+                    (click)="onDelete(n.id)"
+                    [disabled]="deletingId() === n.id"
+                    class="px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700 focus:outline-none focus:ring disabled:opacity-60"
+                    aria-label="Supprimer la note"
+                  >
+                    {{ deletingId() === n.id ? 'Suppression…' : 'Supprimer' }}
+                  </button>
+                </div>
+              </td>
             </tr>
             <tr *ngIf="pageItems().length === 0">
-              <td class="px-4 py-6 text-center text-gray-500" colspan="4">Aucun résultat</td>
+              <td class="px-4 py-6 text-center text-gray-500" [attr.colspan]="isAdmin() ? 5 : 4">
+                Aucun résultat
+              </td>
             </tr>
           </tbody>
         </table>
@@ -138,7 +176,7 @@ interface EnrichedNote {
           type="button"
           (click)="nextPage()"
           [disabled]="page() >= totalPages()"
-          class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring"
+          class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
         >
           Suivant
         </button>
@@ -150,17 +188,21 @@ export class NotesListPage {
   private readonly notesSvc = inject(NotesService);
   private readonly studentsSvc = inject(StudentsService);
   private readonly coursesSvc = inject(CoursesService);
+  private readonly auth = inject(AuthService);
 
-  // état filtres + pagination
+  readonly isAdmin = () => this.auth.role() === 'admin';
+
+  // filtres + pagination
   readonly selectedStudentId = signal<number | null>(null);
   readonly selectedCourseId = signal<number | null>(null);
   readonly query = signal('');
   readonly page = signal(1);
   readonly pageSize = 10;
 
-  constructor() {
-    // charge les données (mock delays → loader)
+  // état suppression
+  readonly deletingId = signal<number | null>(null);
 
+  constructor() {
     this.notesSvc.getAll();
 
     this.studentsSvc.getAll();
@@ -192,12 +234,8 @@ export class NotesListPage {
 
     let arr = this.notes();
 
-    if (sid !== null) {
-      arr = arr.filter((n) => n.studentId === sid);
-    }
-    if (cid !== null) {
-      arr = arr.filter((n) => n.courseId === cid);
-    }
+    if (sid !== null) arr = arr.filter((n) => n.studentId === sid);
+    if (cid !== null) arr = arr.filter((n) => n.courseId === cid);
     if (q) {
       arr = arr.filter((n) =>
         `${n.studentName} ${n.courseTitle} ${n.value} ${n.date}`.toLowerCase().includes(q),
@@ -214,12 +252,11 @@ export class NotesListPage {
   readonly endIndex = computed(() =>
     Math.min(this.startIndex() + this.pageSize, this.filteredCount()),
   );
-
   readonly pageItems = computed<EnrichedNote[]>(() =>
     this.filtered().slice(this.startIndex(), this.endIndex()),
   );
 
-  // résumé moyenne dynamique
+  // résumé moyenne
   readonly avgText = computed(() => {
     const sid = this.selectedStudentId();
     const cid = this.selectedCourseId();
@@ -234,29 +271,49 @@ export class NotesListPage {
     return null;
   });
 
-  // ui events
+  // events UI
   onStudentChange(val: string): void {
     const parsed = val ? Number(val) : null;
     this.selectedStudentId.set(Number.isFinite(parsed as number) ? (parsed as number) : null);
     this.page.set(1);
   }
-
   onCourseChange(val: string): void {
     const parsed = val ? Number(val) : null;
     this.selectedCourseId.set(Number.isFinite(parsed as number) ? (parsed as number) : null);
     this.page.set(1);
   }
-
   onQueryChange(val: string): void {
     this.query.set(val);
     this.page.set(1);
   }
-
   nextPage(): void {
     if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
   }
   prevPage(): void {
     if (this.page() > 1) this.page.update((p) => p - 1);
+  }
+
+  // suppression avec confirm + clamp pagination
+  async onDelete(id: number): Promise<void> {
+    if (!this.isAdmin()) return;
+    const ok = window.confirm('Supprimer cette note ?');
+    if (!ok) return;
+
+    this.deletingId.set(id);
+    try {
+      await this.notesSvc.remove(id);
+
+      // Clamp pagination si on se retrouve sur une page vide
+      // (recalcule après la suppression grâce aux signals)
+      const pages = this.totalPages();
+      if (this.page() > pages) {
+        this.page.set(pages);
+      }
+    } catch {
+      alert('Suppression impossible.');
+    } finally {
+      this.deletingId.set(null);
+    }
   }
 
   // trackBys
