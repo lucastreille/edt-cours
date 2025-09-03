@@ -6,6 +6,7 @@ import { StudentsService } from '../../../features/etudiants/students.service';
 import { CoursesService } from '../../../features/cours/courses.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { GradePipe } from '../../../shared/pipes/grade.pipe';
+import { DurationAgoPipe } from '../../../shared/pipes/duration-ago.pipe';
 
 interface EnrichedNote {
   id: number;
@@ -20,7 +21,7 @@ interface EnrichedNote {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterLink, GradePipe],
+  imports: [CommonModule, RouterLink, GradePipe, DurationAgoPipe],
   template: `
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
@@ -124,7 +125,10 @@ interface EnrichedNote {
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr *ngFor="let n of pageItems(); trackBy: trackByNoteId" class="hover:bg-gray-50">
-              <td class="px-4 py-2">{{ n.date }}</td>
+              <td class="px-4 py-2">
+                <div>{{ n.date }}</div>
+                <div class="text-xs text-gray-500">{{ n.createdAt | durationAgo }}</div>
+              </td>
               <td class="px-4 py-2">{{ n.studentName }}</td>
               <td class="px-4 py-2">{{ n.courseTitle }}</td>
               <td class="px-4 py-2 text-right font-semibold">
