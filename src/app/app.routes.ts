@@ -18,12 +18,12 @@ export const routes: Routes = [
     path: 'etudiants',
     loadChildren: () =>
       import('./features/etudiants/etudiants.routes').then((m) => m.ETUDIANTS_ROUTES),
-    canActivate: [AuthGuard],
+    canActivate: [RoleGuard('admin')],
   },
   {
     path: 'cours',
+    canActivate: [AuthGuard],
     loadChildren: () => import('./features/cours/cours.routes').then((m) => m.COURS_ROUTES),
-    canActivate: [AuthGuard, RoleGuard('admin')], // réservé aux admins
   },
   {
     path: 'notes',

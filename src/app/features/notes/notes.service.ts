@@ -177,36 +177,30 @@ export class NotesService {
 
   // seed initial: on utilise les IDs existants (étudiants 1000..1011, cours 1..8)
   private seedInitial(): Note[] {
-    const rand = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+    // Récupère les IDs réellement présents
+    const studentIds = this.studentsSvc.students().map((s) => s.id);
+    const courseIds = this.coursesSvc.courses().map((c) => c.id);
 
-    const students = Array.from({ length: 12 }, (_, i) => 1000 + i); // 1000..1011
-    const courses = [1, 2, 3, 4, 5, 6, 7, 8];
+    // Fallbacks si vide (premier run)
+    const sids = studentIds.length ? studentIds.slice(0, 3) : [1, 2, 3];
+    const cids = courseIds.length ? courseIds.slice(0, 2) : [1, 2];
 
     const today = this.today();
     const nowIso = new Date().toISOString();
-
     const seed: Note[] = [];
 
-    // 2 notes par étudiant sur 2 cours pour démo
-    for (const sid of students) {
-      const c1 = courses[rand(0, courses.length - 1)];
-      const c2 = courses[rand(0, courses.length - 1)];
-      seed.push({
-        id: seed.length + 1,
-        studentId: sid,
-        courseId: c1,
-        value: rand(8, 18),
-        date: today,
-        createdAt: nowIso,
-      });
-      seed.push({
-        id: seed.length + 1,
-        studentId: sid,
-        courseId: c2,
-        value: rand(6, 19),
-        date: today,
-        createdAt: nowIso,
-      });
+    // Génére 2 notes par étudiant sur 2 cours
+    for (const sid of sids) {
+      for (const cid of cids) {
+        seed.push({
+          id: seed.length + 1,
+          studentId: sid,
+          courseId: cid,
+          value: 10 + ((sid + cid) % 10), // 10..19
+          date: today,
+          createdAt: nowIso,
+        });
+      }
     }
 
     this.saveToStorage(seed);

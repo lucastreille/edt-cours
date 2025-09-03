@@ -2,14 +2,9 @@ export interface Course {
   id: number;
   title: string;
   teacher: string;
-  ects: number; // crédits ECTS
-  description: string;
-  order: number; // pour l’affichage/drag & drop
-  createdAt: string; // ISO
+  ects: number;
+  date: string; // YYYY-MM-DD
+  order: number;
+  /** Étudiants inscrits à ce cours */
+  studentIds: number[];
 }
-
-export type CreateCourseDto = Omit<Course, 'id' | 'createdAt' | 'order'> & {
-  order?: number;
-};
-
-export type UpdateCourseDto = Partial<Omit<Course, 'id' | 'createdAt'>>;

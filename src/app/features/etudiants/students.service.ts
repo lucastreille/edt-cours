@@ -1,178 +1,143 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
-import { Student, CreateStudentDto, UpdateStudentDto } from './student.model';
-import { LoaderStore } from '../../core/state/loader.store';
+import { Injectable, computed, signal } from '@angular/core';
+import { Student } from './student.model';
+
+const STORAGE_KEY = 'students';
 
 @Injectable({ providedIn: 'root' })
 export class StudentsService {
-  private readonly STORAGE_KEY = 'students_data';
-  private readonly loader = inject(LoaderStore);
+  private readonly _students = signal<Student[]>(this.load());
+  readonly students = this._students.asReadonly();
 
-  // --- state
-  private readonly _students = signal<Student[]>(this.loadFromStorage() ?? this.seedInitial());
-  readonly students = computed(() => this._students());
-  readonly total = computed(() => this._students().length);
+  readonly ordered = computed(() =>
+    [...this._students()].sort((a, b) => {
+      const ln = a.lastName.localeCompare(b.lastName);
+      return ln !== 0 ? ln : a.firstName.localeCompare(b.firstName);
+    }),
+  );
 
-  // --- helpers
-  private async delay(ms = 500): Promise<void> {
-    await new Promise((res) => setTimeout(res, ms));
+  async getAll(): Promise<void> {
+    await new Promise((r) => setTimeout(r, 120));
   }
 
-  // --- public API
-  async getAll(): Promise<Student[]> {
-    this.loader.start();
-    try {
-      await this.delay(300);
-      return this._students();
-    } finally {
-      this.loader.stop();
-    }
+  async create(
+    input: Omit<Student, 'id' | 'createdAt'> & { createdAt?: string },
+  ): Promise<Student> {
+    await new Promise((r) => setTimeout(r, 120));
+    const nowIso = new Date().toISOString();
+    const student: Student = { ...input, id: Date.now(), createdAt: input.createdAt ?? nowIso };
+    this._students.set([...this._students(), student]);
+    this.save();
+    return student;
   }
 
-  async getById(id: number): Promise<Student | null> {
-    this.loader.start();
-    try {
-      await this.delay(200);
-      const s = this._students().find((x) => x.id === id) ?? null;
-      return s;
-    } finally {
-      this.loader.stop();
-    }
-  }
-
-  async create(input: CreateStudentDto): Promise<Student> {
-    this.loader.start();
-    try {
-      await this.delay(400);
-      const student: Student = {
-        id: this.nextId(),
-        firstName: input.firstName.trim(),
-        lastName: input.lastName.trim(),
-        email: input.email.trim().toLowerCase(),
-        birthDate: input.birthDate,
-        createdAt: new Date().toISOString(),
-      };
-      const list = [student, ...this._students()];
-      this._students.set(list);
-      this.saveToStorage(list);
-      return student;
-    } finally {
-      this.loader.stop();
-    }
-  }
-
-  async update(id: number, changes: UpdateStudentDto): Promise<Student> {
-    this.loader.start();
-    try {
-      await this.delay(400);
-      let updated: Student | null = null;
-      const list = this._students().map((s) => {
-        if (s.id !== id) return s;
-        updated = {
-          ...s,
-          ...changes,
-          firstName: (changes.firstName ?? s.firstName).trim(),
-          lastName: (changes.lastName ?? s.lastName).trim(),
-          email: (changes.email ?? s.email).trim().toLowerCase(),
-        };
-        return updated;
-      });
-      if (!updated) {
-        throw new Error('Étudiant introuvable');
-      }
-      this._students.set(list);
-      this.saveToStorage(list);
-      return updated;
-    } finally {
-      this.loader.stop();
-    }
+  async update(id: number, patch: Partial<Student>): Promise<Student | null> {
+    await new Promise((r) => setTimeout(r, 120));
+    const arr = [...this._students()];
+    const idx = arr.findIndex((s) => s.id === id);
+    if (idx === -1) return null;
+    arr[idx] = { ...arr[idx], ...patch, id: arr[idx].id };
+    this._students.set(arr);
+    this.save();
+    return arr[idx];
   }
 
   async remove(id: number): Promise<void> {
-    this.loader.start();
-    try {
-      await this.delay(300);
-      const before = this._students().length;
-      const list = this._students().filter((s) => s.id !== id);
-      if (list.length === before) {
-        throw new Error('Étudiant introuvable');
-      }
-      this._students.set(list);
-      this.saveToStorage(list);
-    } finally {
-      this.loader.stop();
+    await new Promise((r) => setTimeout(r, 120));
+    this._students.set(this._students().filter((s) => s.id !== id));
+    this.save();
+  }
+
+  async getById(id: number): Promise<Student | null> {
+    await new Promise((r) => setTimeout(r, 80));
+    return this._students().find((s) => s.id === id) ?? null;
+  }
+
+  // ---- Email <-> Student helpers ----
+  findByEmail(email: string): Student | undefined {
+    const e = email.trim().toLowerCase();
+    return this._students().find((s) => (s.email ?? '').toLowerCase() === e);
+  }
+
+  private createFromEmail(email: string): Student {
+    const e = email.trim().toLowerCase();
+    const id = Date.now();
+    const [firstName, lastName] = this.namesFromEmail(e);
+
+    const today = new Date();
+    const birthDate = `${today.getFullYear() - 20}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+      today.getDate(),
+    ).padStart(2, '0')}`;
+    const createdAt = new Date().toISOString();
+
+    const student: Student = { id, firstName, lastName, email: e, birthDate, createdAt };
+    this._students.set([...this._students(), student]);
+    this.save();
+    return student;
+  }
+
+  async ensureByEmail(email: string): Promise<number> {
+    await new Promise((r) => setTimeout(r, 80));
+    const existing = this.findByEmail(email);
+    if (existing) return existing.id;
+    const created = this.createFromEmail(email);
+    return created.id;
+  }
+
+  private namesFromEmail(email: string): [string, string] {
+    const local = email.split('@')[0] ?? 'user';
+    const parts = local.split(/[.\-_]/).filter(Boolean);
+    const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const first = cap(parts[0] ?? 'User');
+    const last = cap(parts[1] ?? 'Demo');
+    return [first, last];
+  }
+
+  // ---- persistence ----
+  private save(): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this._students()));
+  }
+
+  private load(): Student[] {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const todayIso = new Date().toISOString();
+      return [
+        {
+          id: 1,
+          firstName: 'User',
+          lastName: 'Test',
+          email: 'user@test.com',
+          birthDate: '2004-01-15',
+          createdAt: todayIso,
+        },
+        {
+          id: 2,
+          firstName: 'Alice',
+          lastName: 'Martin',
+          email: 'alice@test.com',
+          birthDate: '2003-05-20',
+          createdAt: todayIso,
+        },
+        {
+          id: 3,
+          firstName: 'Bob',
+          lastName: 'Dupont',
+          email: 'bob@test.com',
+          birthDate: '2003-09-10',
+          createdAt: todayIso,
+        },
+      ];
     }
-  }
-
-  // --- localStorage
-  private saveToStorage(list: Student[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(list));
-  }
-
-  private loadFromStorage(): Student[] | null {
-    const raw = localStorage.getItem(this.STORAGE_KEY);
-    if (!raw) return null;
     try {
-      const parsed = JSON.parse(raw) as Student[];
-      return Array.isArray(parsed) ? parsed : null;
+      const list = JSON.parse(raw) as Student[];
+      return (Array.isArray(list) ? list : []).map((s) => ({
+        ...s,
+        email: s.email ?? '',
+        birthDate: s.birthDate ?? '2004-01-01',
+        createdAt: s.createdAt ?? new Date().toISOString(),
+      }));
     } catch {
-      return null;
+      return [];
     }
-  }
-
-  // --- seed & id
-  private seedInitial(): Student[] {
-    const now = new Date();
-    const sample: Student[] = Array.from({ length: 12 }).map((_, i) => {
-      const id = 1000 + i;
-      const first = [
-        'Alice',
-        'Bruno',
-        'Chloé',
-        'David',
-        'Emma',
-        'Fares',
-        'Gisèle',
-        'Hugo',
-        'Inès',
-        'Jules',
-        'Kenza',
-        'Léo',
-      ][i];
-      const last = [
-        'Martin',
-        'Durand',
-        'Bernard',
-        'Petit',
-        'Robert',
-        'Richard',
-        'Moreau',
-        'Simon',
-        'Laurent',
-        'Lefebvre',
-        'Michel',
-        'Garcia',
-      ][i];
-      const yyyy = 1995 + (i % 7);
-      const mm = String(1 + (i % 12)).padStart(2, '0');
-      const dd = String(1 + (i % 28)).padStart(2, '0');
-      return {
-        id,
-        firstName: first,
-        lastName: last,
-        email: `${first}.${last}@exemple.com`.toLowerCase(),
-        birthDate: `${yyyy}-${mm}-${dd}`,
-        createdAt: now.toISOString(),
-      };
-    });
-    this.saveToStorage(sample);
-    return sample;
-  }
-
-  private nextId(): number {
-    const list = this._students();
-    return list.length ? Math.max(...list.map((s) => s.id)) + 1 : 1;
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).StudentsServiceToken = StudentsService;

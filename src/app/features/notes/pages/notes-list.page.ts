@@ -124,7 +124,7 @@ interface EnrichedNote {
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
-            <tr *ngFor="let n of pageItems(); trackBy: trackByNoteId" class="hover:bg-gray-50">
+            <tr *ngFor="let n of visible(); trackBy: trackByNoteId" class="hover:bg-gray-50">
               <td class="px-4 py-2">
                 <div>{{ n.date }}</div>
                 <div class="text-xs text-gray-500">{{ n.createdAt | durationAgo }}</div>
@@ -234,6 +234,16 @@ export class NotesListPage {
   readonly notes = computed<EnrichedNote[]>(() =>
     [...this.notesSvc.enriched()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   );
+
+  readonly visible = computed(() => {
+    const u = this.auth.user();
+    const all = this.notesSvc.enriched(); // garde l'enrichissement (noms/titres)
+    if (!u) return [];
+    if (u.role === 'admin') return all;
+    const sid = u.studentId;
+    if (!Number.isFinite(sid as number)) return [];
+    return all.filter((n) => n.studentId === (sid as number));
+  });
 
   // filtrage
   readonly filtered = computed<EnrichedNote[]>(() => {

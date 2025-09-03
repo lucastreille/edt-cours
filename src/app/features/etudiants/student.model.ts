@@ -3,8 +3,8 @@ export interface Student {
   firstName: string;
   lastName: string;
   email: string;
-  birthDate: string; // ISO string (YYYY-MM-DD)
-  createdAt: string; // ISO date-time
+  birthDate: string; // YYYY-MM-DD
+  createdAt: string; // ISO date string
 }
 
 export type CreateStudentDto = Omit<Student, 'id' | 'createdAt'> & {
