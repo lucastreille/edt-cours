@@ -138,7 +138,7 @@ export class CoursesService {
   }
 
   private normalizeOrder(list: Course[]): Course[] {
-    return list.sort((a, b) => a.order - b.order).map((c, i) => ({ ...c, order: i }));
+    return list.map((c, i) => ({ ...c, order: i }));
   }
 
   private seedInitial(): Course[] {

@@ -2,25 +2,30 @@ import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CoursesService } from '../../../features/cours/courses.service';
 import { Course } from '../../../features/cours/course.model';
+import { DraggableDirective } from '../../../shared/directives/draggable.directive';
+import { DroppableDirective, DropPayload } from '../../../shared/directives/droppable.directive';
 
 @Component({
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DraggableDirective, DroppableDirective],
   template: `
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 class="text-2xl font-semibold">Cours</h2>
-          <p class="text-sm text-gray-600">Catalogue des enseignements disponibles</p>
+          <p class="text-sm text-gray-600">Glissez-déposez les cartes pour réordonner</p>
         </div>
         <div class="text-sm text-gray-600">{{ total() }} cours</div>
       </header>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <article
-          *ngFor="let c of items(); trackBy: trackById"
+          *ngFor="let c of items(); let i = index; trackBy: trackById"
           class="rounded-xl border bg-white shadow-sm hover:shadow-md transition"
           aria-label="Cours {{ c.title }}"
+          [appDraggable]="i"
+          [appDroppable]="i"
+          (appDropped)="onDropped($event)"
         >
           <div class="p-4">
             <div class="flex items-start justify-between gap-3">
@@ -58,17 +63,13 @@ import { Course } from '../../../features/cours/course.model';
           </div>
         </article>
       </div>
-
-      <p class="text-sm text-gray-500">
-        Réorganisation par <span class="font-medium">drag & drop</span> au prochain commit.
-      </p>
     </section>
   `,
 })
 export class CoursesListPage {
   private coursesSvc = inject(CoursesService);
 
-  // charge initiale (délais mock pour voir le loader)
+  // charge initiale
 
   constructor() {
     this.coursesSvc.getAll();
@@ -84,7 +85,7 @@ export class CoursesListPage {
   }
 
   /**
-   * Petits jeux de couleurs pour l’avatar enseignant, en fonction de l’ordre.
+   * Couleurs d'avatar en fonction de l'ordre (décoratif)
    */
   avatarColor(order: number): string {
     const palette = [
@@ -96,5 +97,13 @@ export class CoursesListPage {
       'bg-gradient-to-br from-cyan-500 to-sky-600',
     ];
     return palette[order % palette.length];
+  }
+
+  async onDropped(evt: DropPayload): Promise<void> {
+    try {
+      await this.coursesSvc.reorder(evt.from, evt.to);
+    } catch {
+      alert('Impossible de réordonner ce cours.');
+    }
   }
 }
