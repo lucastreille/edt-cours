@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StudentsService } from '../../../features/etudiants/students.service';
+import { AutofocusDirective } from '../../../shared/directives/autofocus.directive';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AutofocusDirective],
   template: `
     <section class="space-y-4 max-w-xl">
       <a
@@ -46,6 +47,7 @@ import { StudentsService } from '../../../features/etudiants/students.service';
             id="lastName"
             type="text"
             formControlName="lastName"
+            appAutofocus
             class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
           />
           <p

@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { AutofocusDirective } from '../../../shared/directives/autofocus.directive';
 
 function passwordMatchValidator(control: AbstractControl) {
   const password = control.get('password')?.value;
@@ -18,7 +19,7 @@ function passwordMatchValidator(control: AbstractControl) {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AutofocusDirective],
   template: `
     <div class="max-w-md mx-auto mt-12 bg-white shadow rounded-lg p-6">
       <h2 class="text-2xl font-semibold mb-6 text-center">Créer un compte</h2>
@@ -31,6 +32,7 @@ function passwordMatchValidator(control: AbstractControl) {
             id="email"
             type="email"
             formControlName="email"
+            appAutofocus
             class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
           />
           <p

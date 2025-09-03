@@ -5,10 +5,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NotesService } from '../../../features/notes/notes.service';
 import { StudentsService } from '../../../features/etudiants/students.service';
 import { CoursesService } from '../../../features/cours/courses.service';
+import { AutofocusDirective } from '../../../shared/directives/autofocus.directive';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AutofocusDirective],
   template: `
     <section class="space-y-4 max-w-xl">
       <a
@@ -32,6 +33,7 @@ import { CoursesService } from '../../../features/cours/courses.service';
           <select
             id="studentId"
             formControlName="studentId"
+            appAutofocus
             class="w-full px-3 py-2 border rounded bg-white focus:outline-none focus:ring focus:border-indigo-500"
           >
             <option value="" disabled>— Sélectionner —</option>
