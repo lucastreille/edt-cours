@@ -5,6 +5,7 @@ import { NotesService } from '../../../features/notes/notes.service';
 import { StudentsService } from '../../../features/etudiants/students.service';
 import { CoursesService } from '../../../features/cours/courses.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { GradePipe } from '../../../shared/pipes/grade.pipe';
 
 interface EnrichedNote {
   id: number;
@@ -19,7 +20,7 @@ interface EnrichedNote {
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, GradePipe],
   template: `
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
@@ -126,7 +127,11 @@ interface EnrichedNote {
               <td class="px-4 py-2">{{ n.date }}</td>
               <td class="px-4 py-2">{{ n.studentName }}</td>
               <td class="px-4 py-2">{{ n.courseTitle }}</td>
-              <td class="px-4 py-2 text-right font-semibold">{{ n.value }}</td>
+              <td class="px-4 py-2 text-right font-semibold">
+                {{ n.value }} / 20
+                <span class="ml-1 text-xs text-gray-600">({{ n.value | grade }})</span>
+              </td>
+
               <td *ngIf="isAdmin()" class="px-4 py-2 text-right">
                 <div class="inline-flex items-center gap-2">
                   <a
