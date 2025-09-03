@@ -46,7 +46,7 @@ interface EnrichedNote {
       <!-- Filtres -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <!-- Étudiant -->
-        <div>
+        <div *ngIf="isAdmin()">
           <label for="student" class="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >Étudiant</label
           >
@@ -105,9 +105,29 @@ interface EnrichedNote {
         </div>
       </div>
 
-      <!-- Résumé moyenne -->
-      <div *ngIf="avgText()" class="text-sm text-gray-700 dark:text-gray-300">
-        {{ avgText() }}
+      <!-- Moyennes par matière (si un étudiant est ciblé) -->
+      <div
+        *ngIf="averagesByCourse().length > 0"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+      >
+        <div
+          *ngFor="let a of averagesByCourse()"
+          class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4"
+        >
+          <div class="text-sm text-gray-500 dark:text-gray-400">{{ a.courseTitle }}</div>
+          <div class="mt-1 flex items-baseline justify-between">
+            <div class="text-xl font-semibold">
+              {{ a.avg | number: '1.0-2' }} / 20
+              <span class="ml-1 text-xs text-gray-600 dark:text-gray-400">
+                ({{ a.avg | grade }})
+              </span>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">{{ a.count }} note(s)</div>
+          </div>
+          <div class="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+            <div class="h-2 rounded-full bg-indigo-600" [style.width.%]="(a.avg / 20) * 100"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Liste -->
@@ -126,7 +146,7 @@ interface EnrichedNote {
           </thead>
           <tbody class="divide-y divide-gray-200/70 dark:divide-gray-800">
             <tr
-              *ngFor="let n of visible(); trackBy: trackByNoteId"
+              *ngFor="let n of pageItems(); trackBy: trackByNoteId"
               class="hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <td class="px-4 py-2">
@@ -262,7 +282,7 @@ export class NotesListPage {
     const cid = this.selectedCourseId();
     const q = this.query().trim().toLowerCase();
 
-    let arr = this.notes();
+    let arr = this.visible();
 
     if (sid !== null) arr = arr.filter((n) => n.studentId === sid);
     if (cid !== null) arr = arr.filter((n) => n.courseId === cid);
@@ -272,6 +292,42 @@ export class NotesListPage {
       );
     }
     return arr;
+  });
+
+  // --- Contexte étudiant pour le calcul des moyennes par matière
+  readonly contextStudentId = computed<number | null>(() => {
+    const u = this.auth.user();
+    if (!u) return null;
+    // Non-admin : toujours ses propres moyennes
+    if (!this.isAdmin()) {
+      const sid = u.studentId;
+      return Number.isFinite(sid as number) ? (sid as number) : null;
+    }
+    // Admin : seulement si un étudiant est sélectionné
+    const sel = this.selectedStudentId();
+    return sel !== null ? sel : null;
+  });
+
+  // --- Moyennes par matière pour l'étudiant du contexte
+  readonly averagesByCourse = computed(() => {
+    const sid = this.contextStudentId();
+    if (sid === null) return [];
+    const arr = this.notes().filter((n) => n.studentId === sid);
+    const map = new Map<number, { title: string; sum: number; count: number }>();
+    for (const n of arr) {
+      const e = map.get(n.courseId) ?? { title: n.courseTitle, sum: 0, count: 0 };
+      e.sum += n.value;
+      e.count += 1;
+      map.set(n.courseId, e);
+    }
+    return [...map.entries()]
+      .map(([courseId, { title, sum, count }]) => ({
+        courseId,
+        courseTitle: title,
+        avg: sum / count,
+        count,
+      }))
+      .sort((a, b) => a.courseTitle.localeCompare(b.courseTitle));
   });
 
   readonly filteredCount = computed(() => this.filtered().length);
