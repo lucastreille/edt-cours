@@ -15,15 +15,15 @@ import { StudentsService } from '../../etudiants/students.service';
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 class="text-2xl font-semibold">Cours</h2>
-          <p class="text-sm text-gray-600">
+          <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Cours</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
             Glissez-déposez pour réordonner (admin) · Les étudiants voient uniquement leurs cours
           </p>
         </div>
         <a
           *ngIf="isAdmin()"
           routerLink="/cours/nouveau"
-          class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+          class="inline-flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           Ajouter
         </a>
@@ -32,26 +32,27 @@ import { StudentsService } from '../../etudiants/students.service';
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <article
           *ngFor="let c of visible(); let i = index; trackBy: trackById"
-          class="bg-white rounded-lg shadow p-4 border"
+          class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-200/70 dark:ring-gray-800 p-4"
           [appDroppable]="i"
           (appDropped)="onDropped($event)"
         >
-          <div class="flex items-start gap-2">
+          <div class="flex items-start gap-3">
             <div
-              class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold select-none"
+              class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-semibold select-none ring-1 ring-indigo-200/70 dark:ring-indigo-800/50"
               [appDraggable]="i"
               [class.opacity-50]="draggingIndex() === i"
               title="Glisser pour déplacer"
             >
               {{ c.title.slice(0, 2).toUpperCase() }}
             </div>
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold">{{ c.title }}</h3>
-              <p class="text-sm text-gray-600">Enseignant : {{ c.teacher }}</p>
-              <p class="text-sm text-gray-600">ECTS : {{ c.ects }}</p>
-              <p class="text-sm text-gray-600">Date : {{ c.date }}</p>
 
-              <div class="mt-2 text-xs text-gray-500">
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-semibold leading-tight truncate">{{ c.title }}</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Enseignant : {{ c.teacher }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">ECTS : {{ c.ects }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Date : {{ c.date }}</p>
+
+              <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 Étudiants inscrits : {{ c.studentIds.length }}
               </div>
             </div>
@@ -59,15 +60,16 @@ import { StudentsService } from '../../etudiants/students.service';
             <div *ngIf="isAdmin()" class="flex items-center gap-2">
               <a
                 [routerLink]="['/cours', c.id, 'edition']"
-                class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+                class="inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 aria-label="Éditer le cours"
-                >Éditer</a
               >
+                Éditer
+              </a>
               <button
                 type="button"
                 (click)="onDelete(c.id)"
                 [disabled]="deletingId() === c.id"
-                class="px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700 focus:outline-none focus:ring disabled:opacity-60"
+                class="inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium bg-rose-600 text-white hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-60"
                 aria-label="Supprimer le cours"
               >
                 {{ deletingId() === c.id ? 'Suppression…' : 'Supprimer' }}
@@ -76,7 +78,13 @@ import { StudentsService } from '../../etudiants/students.service';
           </div>
         </article>
 
-        <div *ngIf="visible().length === 0" class="text-gray-500">Aucun cours à afficher.</div>
+        <div *ngIf="visible().length === 0" class="col-span-full">
+          <div
+            class="text-center text-gray-500 dark:text-gray-400 py-12 bg-white dark:bg-gray-900 rounded-2xl ring-1 ring-gray-200/70 dark:ring-gray-800"
+          >
+            Aucun cours à afficher.
+          </div>
+        </div>
       </div>
     </section>
   `,

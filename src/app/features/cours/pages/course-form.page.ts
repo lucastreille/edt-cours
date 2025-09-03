@@ -13,18 +13,18 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
     <section class="space-y-4 max-w-2xl">
       <a
         routerLink="/cours"
-        class="inline-block px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+        class="inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >← Retour</a
       >
 
-      <h2 class="text-2xl font-semibold">
+      <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">
         {{ isEdit ? 'Éditer un cours' : 'Nouveau cours' }}
       </h2>
 
       <form
         [formGroup]="form"
         (ngSubmit)="onSubmit()"
-        class="bg-white rounded-lg shadow p-4 space-y-4"
+        class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-200/70 dark:ring-gray-800 p-6 space-y-5"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -34,11 +34,11 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
               type="text"
               formControlName="title"
               appAutofocus
-              class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <p
               *ngIf="form.get('title')?.invalid && form.get('title')?.touched"
-              class="text-red-600 text-sm mt-1"
+              class="text-red-600 dark:text-red-400 text-sm mt-1"
             >
               Titre requis
             </p>
@@ -50,11 +50,11 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
               id="teacher"
               type="text"
               formControlName="teacher"
-              class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <p
               *ngIf="form.get('teacher')?.invalid && form.get('teacher')?.touched"
-              class="text-red-600 text-sm mt-1"
+              class="text-red-600 dark:text-red-400 text-sm mt-1"
             >
               Enseignant requis
             </p>
@@ -68,11 +68,11 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
               min="0"
               step="1"
               formControlName="ects"
-              class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <p
               *ngIf="form.get('ects')?.invalid && form.get('ects')?.touched"
-              class="text-red-600 text-sm mt-1"
+              class="text-red-600 dark:text-red-400 text-sm mt-1"
             >
               ECTS ≥ 0
             </p>
@@ -84,11 +84,11 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
               id="date"
               type="date"
               formControlName="date"
-              class="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-indigo-500"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             />
             <p
               *ngIf="form.get('date')?.invalid && form.get('date')?.touched"
-              class="text-red-600 text-sm mt-1"
+              class="text-red-600 dark:text-red-400 text-sm mt-1"
             >
               Date requise
             </p>
@@ -96,20 +96,23 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
         </div>
 
         <!-- Affectation des étudiants (admin) -->
-        <fieldset class="border rounded p-3">
-          <legend class="text-sm font-medium px-1">Étudiants inscrits</legend>
+        <fieldset class="rounded-2xl ring-1 ring-gray-200/70 dark:ring-gray-800 p-4">
+          <legend class="text-sm font-medium px-1 text-gray-900 dark:text-gray-100">
+            Étudiants inscrits
+          </legend>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
             <label
               *ngFor="let s of students(); trackBy: trackByStudent"
-              class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50"
+              class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <input
                 type="checkbox"
                 #cb
                 [checked]="isSelected(s.id)"
                 (change)="toggleStudent(s.id, cb.checked)"
+                class="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-500"
               />
-              <span>{{ s.lastName }} {{ s.firstName }}</span>
+              <span class="text-sm">{{ s.lastName }} {{ s.firstName }}</span>
             </label>
           </div>
         </fieldset>
@@ -118,13 +121,13 @@ import { AutofocusDirective } from '../../../shared/directives/autofocus.directi
           <button
             type="submit"
             [disabled]="form.invalid || saving"
-            class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring disabled:opacity-50"
+            class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             {{ saving ? 'Enregistrement…' : isEdit ? 'Sauvegarder' : 'Créer' }}
           </button>
           <a
             routerLink="/cours"
-            class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+            class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >Annuler</a
           >
         </div>

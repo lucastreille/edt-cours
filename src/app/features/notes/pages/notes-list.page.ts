@@ -26,18 +26,20 @@ interface EnrichedNote {
     <section class="space-y-6">
       <header class="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 class="text-2xl font-semibold">Notes</h2>
-          <p class="text-sm text-gray-600">Filtrez par étudiant, par cours, ou recherchez</p>
+          <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Notes</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Filtrez par étudiant, par cours, ou recherchez
+          </p>
         </div>
 
         <div class="flex items-center gap-2">
           <a
             *ngIf="isAdmin()"
             routerLink="/notes/nouvelle"
-            class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+            class="inline-flex items-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >Ajouter</a
           >
-          <div class="text-sm text-gray-600">{{ filteredCount() }} note(s)</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">{{ filteredCount() }} note(s)</div>
         </div>
       </header>
 
@@ -45,11 +47,13 @@ interface EnrichedNote {
       <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
         <!-- Étudiant -->
         <div>
-          <label for="student" class="block text-sm font-medium text-gray-700">Étudiant</label>
+          <label for="student" class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Étudiant</label
+          >
           <select
             id="student"
             #studentSel
-            class="mt-1 w-full px-3 py-2 border rounded bg-white focus:outline-none focus:ring focus:border-indigo-500"
+            class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             (change)="onStudentChange(studentSel.value)"
           >
             <option [selected]="selectedStudentId() === null" value="">Tous</option>
@@ -65,11 +69,13 @@ interface EnrichedNote {
 
         <!-- Cours -->
         <div>
-          <label for="course" class="block text-sm font-medium text-gray-700">Cours</label>
+          <label for="course" class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Cours</label
+          >
           <select
             id="course"
             #courseSel
-            class="mt-1 w-full px-3 py-2 border rounded bg-white focus:outline-none focus:ring focus:border-indigo-500"
+            class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             (change)="onCourseChange(courseSel.value)"
           >
             <option [selected]="selectedCourseId() === null" value="">Tous</option>
@@ -85,12 +91,14 @@ interface EnrichedNote {
 
         <!-- Recherche -->
         <div class="md:col-span-2">
-          <label for="q" class="block text-sm font-medium text-gray-700">Recherche</label>
+          <label for="q" class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Recherche</label
+          >
           <input
             id="q"
             #q
             type="search"
-            class="mt-1 w-full px-3 py-2 border rounded bg-white focus:outline-none focus:ring focus:border-indigo-500"
+            class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Nom étudiant, cours, date…"
             (input)="onQueryChange(q.value)"
           />
@@ -98,49 +106,49 @@ interface EnrichedNote {
       </div>
 
       <!-- Résumé moyenne -->
-      <div *ngIf="avgText()" class="text-sm text-gray-700">
+      <div *ngIf="avgText()" class="text-sm text-gray-700 dark:text-gray-300">
         {{ avgText() }}
       </div>
 
       <!-- Liste -->
-      <div class="overflow-x-auto bg-white rounded-lg shadow">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+      <div
+        class="overflow-x-auto bg-white dark:bg-gray-900 rounded-2xl shadow-sm ring-1 ring-gray-200/70 dark:ring-gray-800"
+      >
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Étudiant
-              </th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cours</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Note /20
-              </th>
-              <th
-                *ngIf="isAdmin()"
-                class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase"
-              >
-                Actions
-              </th>
+              <th class="px-4 py-3 text-left font-medium">Date</th>
+              <th class="px-4 py-3 text-left font-medium">Étudiant</th>
+              <th class="px-4 py-3 text-left font-medium">Cours</th>
+              <th class="px-4 py-3 text-right font-medium">Note /20</th>
+              <th *ngIf="isAdmin()" class="px-4 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr *ngFor="let n of visible(); trackBy: trackByNoteId" class="hover:bg-gray-50">
+          <tbody class="divide-y divide-gray-200/70 dark:divide-gray-800">
+            <tr
+              *ngFor="let n of visible(); trackBy: trackByNoteId"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
               <td class="px-4 py-2">
                 <div>{{ n.date }}</div>
-                <div class="text-xs text-gray-500">{{ n.createdAt | durationAgo }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ n.createdAt | durationAgo }}
+                </div>
               </td>
               <td class="px-4 py-2">{{ n.studentName }}</td>
               <td class="px-4 py-2">{{ n.courseTitle }}</td>
               <td class="px-4 py-2 text-right font-semibold">
                 {{ n.value }} / 20
-                <span class="ml-1 text-xs text-gray-600">({{ n.value | grade }})</span>
+                <span class="ml-1 text-xs text-gray-600 dark:text-gray-400"
+                  >({{ n.value | grade }})</span
+                >
               </td>
 
               <td *ngIf="isAdmin()" class="px-4 py-2 text-right">
                 <div class="inline-flex items-center gap-2">
                   <a
                     [routerLink]="['/notes', n.id, 'edition']"
-                    class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+                    class="inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     aria-label="Éditer la note"
                     >Éditer</a
                   >
@@ -148,7 +156,7 @@ interface EnrichedNote {
                     type="button"
                     (click)="onDelete(n.id)"
                     [disabled]="deletingId() === n.id"
-                    class="px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700 focus:outline-none focus:ring disabled:opacity-60"
+                    class="inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-medium bg-rose-600 text-white hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-60"
                     aria-label="Supprimer la note"
                   >
                     {{ deletingId() === n.id ? 'Suppression…' : 'Supprimer' }}
@@ -157,7 +165,10 @@ interface EnrichedNote {
               </td>
             </tr>
             <tr *ngIf="pageItems().length === 0">
-              <td class="px-4 py-6 text-center text-gray-500" [attr.colspan]="isAdmin() ? 5 : 4">
+              <td
+                class="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                [attr.colspan]="isAdmin() ? 5 : 4"
+              >
                 Aucun résultat
               </td>
             </tr>
@@ -171,12 +182,12 @@ interface EnrichedNote {
           type="button"
           (click)="prevPage()"
           [disabled]="page() === 1"
-          class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring"
+          class="inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           Précédent
         </button>
 
-        <div class="text-sm text-gray-700">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
           {{ startIndex() + 1 }}–{{ endIndex() }} / {{ filteredCount() }} (page {{ page() }} /
           {{ totalPages() }})
         </div>
@@ -185,7 +196,7 @@ interface EnrichedNote {
           type="button"
           (click)="nextPage()"
           [disabled]="page() >= totalPages()"
-          class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
+          class="inline-flex items-center rounded-lg px-3.5 py-2 text-sm font-medium border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           Suivant
         </button>
