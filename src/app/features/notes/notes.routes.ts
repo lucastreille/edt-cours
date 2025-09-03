@@ -1,4 +1,8 @@
 import { Routes } from '@angular/router';
-import { GradesListPage } from './pages/grades-list.page';
 
-export const NOTES_ROUTES: Routes = [{ path: '', component: GradesListPage, title: 'Notes' }];
+export const NOTES_ROUTES: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./pages/notes-list.page').then((m) => m.NotesListPage),
+  },
+];
