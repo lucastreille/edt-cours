@@ -1,59 +1,76 @@
-# EdtCours
+# 📚 Projet EDT — Gestion des cours & notes (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.1.
+## 🌍 Lien de production
+- **URL** : https://edt-cours-8q7zvdwnh-lucas-projects-12caa5a1.vercel.app  
+  Accessible publiquement (sans login Vercel).
 
-## Development server
+---
 
-To start a local development server, run:
+## 🎯 Contexte
+Application Angular pour gérer des **cours**, des **étudiants** et leurs **notes**.  
+Deux profils :
+- **Admin** : crée/édite/supprime les ressources, réorganise les cours.
+- **Utilisateur** : consulte ses cours et ses notes.
 
+---
+
+## 🔑 Comptes de test
+**Administrateur**
+- Email : `admin@test.com`
+- Mot de passe : `123456`
+
+**Utilisateur**
+- Email : `user@test.com`
+- Mot de passe : `123456`
+
+> ⚠️ Ces identifiants sont de test. Ne pas y stocker de données sensibles.
+
+---
+
+## 🗺️ Pages (aperçu rapide)
+### Commun
+- **Login / Register** : accès à l’application.
+- **404** : page introuvable.
+
+### Espace Admin
+- **Cours** : liste + création/édition/suppression, réorganisation (drag & drop).
+- **Étudiants** : liste + création/édition/suppression.
+- **Notes** : attribution, édition et suppression des notes, aperçu global.
+
+### Espace Utilisateur
+- **Cours** : affiche uniquement les cours de l’utilisateur.
+- **Notes** : notes personnelles, formats lisibles (moyennes/notations).
+
+---
+
+## 🚀 Déploiement & mises à jour (Vercel)
+
+### Déploiement continu via Git (recommandé)
+1. Modifie le code.
+2. Commit & push sur la branche de prod (ex. `main`) :
+   ```bash
+   git add .
+   git commit -m "Mise à jour"
+   git push origin main
+3. Vercel reconstruit et déploie automatiquement.
+Le lien de prod est mis à jour :
+https://edt-cours-8q7zvdwnh-lucas-projects-12caa5a1.vercel.
+
+
+
+### Déploiement manuel via CLI
+
+Installer la CLI :
 ```bash
-ng serve
+npm i -g vercel
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+Se connecter :
 ```bash
-ng generate component component-name
+vercel login
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+Déployer en production :
 ```bash
-ng generate --help
+vercel --prod
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
