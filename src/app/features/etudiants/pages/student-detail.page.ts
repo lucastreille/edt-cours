@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StudentsService } from '../../../features/etudiants/students.service';
 import { Student } from '../../../features/etudiants/student.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -17,17 +17,25 @@ import { AuthService } from '../../../core/services/auth.service';
       >
 
       <ng-container *ngIf="student(); else notfound">
-        <header class="flex items-center justify-between">
+        <header class="flex items-center justify-between gap-2 flex-wrap">
           <h2 class="text-2xl font-semibold">
             {{ student()!.firstName }} {{ student()!.lastName }}
           </h2>
 
-          <a
-            *ngIf="isAdmin()"
-            [routerLink]="['/etudiants', student()!.id, 'edition']"
-            class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
-            >Éditer</a
-          >
+          <div class="flex items-center gap-2" *ngIf="isAdmin()">
+            <a
+              [routerLink]="['/etudiants', student()!.id, 'edition']"
+              class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+              >Éditer</a
+            >
+            <button
+              type="button"
+              (click)="onDelete()"
+              class="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring"
+            >
+              Supprimer
+            </button>
+          </div>
         </header>
 
         <div class="bg-white rounded-lg shadow divide-y">
@@ -50,11 +58,11 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class StudentDetailPage {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private studentsSvc = inject(StudentsService);
   private auth = inject(AuthService);
 
   readonly isAdmin = () => this.auth.role() === 'admin';
-
   readonly student = signal<Student | null>(null);
 
   constructor() {
@@ -71,5 +79,17 @@ export class StudentDetailPage {
   private async load(id: number): Promise<void> {
     const s = await this.studentsSvc.getById(id);
     this.student.set(s);
+  }
+
+  async onDelete(): Promise<void> {
+    if (!this.isAdmin() || !this.student()) return;
+    const ok = confirm('Supprimer cet étudiant ? Cette action est irréversible.');
+    if (!ok) return;
+    try {
+      await this.studentsSvc.remove(this.student()!.id);
+      await this.router.navigate(['/etudiants']);
+    } catch {
+      alert('Erreur lors de la suppression');
+    }
   }
 }

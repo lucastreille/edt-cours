@@ -101,6 +101,14 @@ import { AuthService } from '../../../core/services/auth.service';
                   class="px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring"
                   >Éditer</a
                 >
+                <button
+                  type="button"
+                  (click)="onDelete(s.id)"
+                  class="ml-2 px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring"
+                  aria-label="Supprimer l'étudiant {{ s.firstName }} {{ s.lastName }}"
+                >
+                  Supprimer
+                </button>
               </td>
             </tr>
           </tbody>
@@ -145,8 +153,6 @@ export class StudentsListPage {
   readonly query = signal('');
 
   constructor() {
-    // charge initiale (délais mock)
-
     this.studentsSvc.getAll();
   }
 
@@ -160,7 +166,6 @@ export class StudentsListPage {
       arr = arr.filter((s) => `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(q));
     }
 
-    // tri asc : nom puis prénom
     return [...arr].sort((a, b) => {
       const ln = a.lastName.localeCompare(b.lastName);
       return ln !== 0 ? ln : a.firstName.localeCompare(b.firstName);
@@ -197,4 +202,17 @@ export class StudentsListPage {
   }
 
   readonly Math = Math;
+
+  async onDelete(id: number): Promise<void> {
+    if (!this.isAdmin()) return;
+    const ok = confirm('Supprimer cet étudiant ? Cette action est irréversible.');
+    if (!ok) return;
+    try {
+      await this.studentsSvc.remove(id);
+      // Si on est sur une page au-delà du max après suppression, clamp
+      this.page.update((p) => Math.min(p, this.totalPages()));
+    } catch {
+      alert('Erreur lors de la suppression');
+    }
+  }
 }
