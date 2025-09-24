@@ -18,11 +18,11 @@ describe('GradePipe', () => {
     expect(pipe.transform(9.5, 15, 10)).toBe('C');
   });
 
-  it('should return "-" for invalid inputs', () => {
-    expect(pipe.transform(NaN)).toBe('-');
-    expect(pipe.transform(-1)).toBe('-');
-    expect(pipe.transform(21)).toBe('-');
-    expect(pipe.transform(undefined)).toBe('-');
-    expect(pipe.transform(null)).toBe('-');
+  it('should return "–" for invalid inputs', () => {
+    expect(pipe.transform(NaN as unknown as number)).toBe('–');
+    expect(pipe.transform(-1)).toBe('–');
+    expect(pipe.transform(21)).toBe('–');
+    expect(pipe.transform(undefined as unknown as number)).toBe('–');
+    expect(pipe.transform(null as unknown as number)).toBe('–');
   });
 });
